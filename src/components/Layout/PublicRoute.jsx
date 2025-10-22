@@ -1,9 +1,10 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import LoadingSpinner from './LoadingSpinner';
+import { observer } from "mobx-react-lite";
+import { useAuthStore } from "../../hooks/useStores";
 
-export default function PublicRoute({ children }) {
-  const { currentUser, loading } = useAuth();
+const PublicRoute = observer(({ children }) => {
+  const { currentUser, loading } = useAuthStore();
   const location = useLocation();
 
   if (loading) {
@@ -17,4 +18,6 @@ export default function PublicRoute({ children }) {
   }
 
   return children;
-}
+});
+
+export default PublicRoute;

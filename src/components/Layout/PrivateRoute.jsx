@@ -1,9 +1,10 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import LoadingSpinner from './LoadingSpinner';
+import { observer } from "mobx-react-lite";
+import { useAuthStore } from "../../hooks/useStores";
 
-export default function PrivateRoute({ children }) {
-  const { currentUser, loading } = useAuth();
+const PrivateRoute = observer(({ children }) => {
+  const { currentUser, loading } = useAuthStore();
   const location = useLocation();
 
   if (loading) return <LoadingSpinner message="Checking authentication..." />
@@ -13,4 +14,6 @@ export default function PrivateRoute({ children }) {
   }
 
   return children;
-}
+});
+
+export default PrivateRoute;

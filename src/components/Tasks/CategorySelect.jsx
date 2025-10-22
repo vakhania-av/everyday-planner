@@ -1,40 +1,19 @@
-import { Box, Chip, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { useState } from "react";
+import { Chip, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { categories } from "../../const.js";
+import { observer } from "mobx-react-lite";
+import { useTaskStore } from "../../hooks/useStores.js";
 
-export default function CategorySelect({ value, onChange }) {
-  const [open, setOpen] = useState(false);
-
-  const handleChange = (evt) => { 
-    onChange(evt.target.value);
-  };
-
-  const selectedCategory = categories.find((category) => category.id === value);
+const CategorySelect = observer(() => {
+  const { newTaskCategory, setNewTaskCategory } = useTaskStore();
 
   return (
     <FormControl size="small" sx={{ minWidth: 120 }}>
       <InputLabel>Category</InputLabel>
       <Select
-        open={open}
-        onOpen={() => setOpen(true)}
-        onClose={() => setOpen(false)}
-        value={value || ''}
-        onChange={handleChange}
+        value={newTaskCategory}
         label="Category"
-        renderValue={() => (
-          selectedCategory ? (
-            <Chip
-              label={selectedCategory.name}
-              color={selectedCategory.color}
-              size="small" />
-          ) : (
-            <Box sx={{ color: 'text.secondary' }}>Select category</Box>
-          )
-        )}
+        onChange={(evt) => setNewTaskCategory(evt.target.value)}
       >
-        <MenuItem value="">
-          <em>None</em>
-        </MenuItem>
         {categories.map(({ id, name, color }) => (
           <MenuItem key={id} value={id}>
             <Chip
@@ -47,4 +26,6 @@ export default function CategorySelect({ value, onChange }) {
       </Select>
     </FormControl>
   );
-};
+});
+
+export default CategorySelect;

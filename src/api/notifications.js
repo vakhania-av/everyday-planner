@@ -1,16 +1,6 @@
 import { BASE_API } from "../const.js";
 import csrfService from "../services/csrfService.js";
 
-let isLoggedOut = false;
-
-export const setLoggedOut = () => {
-  isLoggedOut = true;
-};
-
-export const resetLoggedOut = () => {
-  isLoggedOut = false;
-};
-
 async function sendRequest(method, endpoint, body = null) {
   const headers = new Headers();
 
@@ -36,10 +26,6 @@ async function sendRequest(method, endpoint, body = null) {
 }
 
 export const getNotifications = async () => {
-  if (isLoggedOut) {
-    return;
-  }
-
   try {
     const response = await sendRequest('GET', `${BASE_API}/notifications/notification.php`);
 

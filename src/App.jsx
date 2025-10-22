@@ -1,8 +1,11 @@
 import { Box, createTheme, CssBaseline, ThemeProvider } from "@mui/material";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 
-import AuthProvider, { useAuth } from "./context/AuthContext";
-import ToastProvider from "./context/ToastContext";
+import rootStore, { StoreProvider } from "./stores";
+
+import AppInitializer from "./components/AppInitializer";
+import ToastContainer from "./components/Layout/ToastContainer";
+import PageTransition from "./components/Layout/PageTransition";
 
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -12,7 +15,6 @@ import Register from "./components/Auth/Register";
 import PublicRoute from "./components/Layout/PublicRoute";
 import PrivateRoute from "./components/Layout/PrivateRoute";
 import Profile from "./pages/Profile";
-import LoadingSpinner from "./components/Layout/LoadingSpinner";
 import ForgotPassword from "./components/Auth/ForgotPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 import Footer from "./components/Layout/Footer";
@@ -23,65 +25,64 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import 'dayjs/locale/ru.js';
 
 import { ruRU } from "@mui/x-date-pickers/locales";
+import { observer } from "mobx-react-lite";
 
 const theme = createTheme();
 
-const AppContent = () => {
-  const { loading } = useAuth();
-
-  if (loading) {
-    return <LoadingSpinner message="Проверка авторизации..." />;
-  }
+const AppContent = observer(() => {
+  const location = useLocation();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Routes>
-        {/* Публичные маршруты - доступны только НЕавторизованным */}
-        <Route path="/login" element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
-        } />
-        <Route path="/register" element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
-        } />
-        <Route path="/forgot-password" element={
-          <PublicRoute>
-            <ForgotPassword />
-          </PublicRoute>
-        } />
-        <Route path="/reset-password" element={
-          <PublicRoute>
-            <ResetPassword />
-          </PublicRoute>
-        } />
+      <PageTransition>
+        <Routes location={location}>
+          {/* Публичные маршруты - доступны только НЕавторизованным */}
+          <Route path="/login" element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } />
+          <Route path="/register" element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          } />
+          <Route path="/forgot-password" element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          } />
+          <Route path="/reset-password" element={
+            <PublicRoute>
+              <ResetPassword />
+            </PublicRoute>
+          } />
 
-        {/* Приватные маршруты - доступны только авторизованным */}
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>}
-        />
+          {/* Приватные маршруты - доступны только авторизованным */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>}
+          />
 
-        {/* Главная страница - доступна всем */}
-        <Route path="/" element={<Home />} />
-      </Routes>
+          {/* Главная страница - доступна всем */}
+          <Route path="/" element={<Home />} />
+        </Routes>
+      </PageTransition>
       <Footer />
     </Box>
   );
-};
+});
 
 function App() {
   return (
@@ -92,13 +93,14 @@ function App() {
         adapterLocale="ru"
         localeText={ruRU.components.MuiLocalizationProvider.defaultProps.localeText}
       >
-        <ToastProvider>
+        <StoreProvider value={rootStore}>
           <Router>
-            <AuthProvider>
+            <AppInitializer>
               <AppContent />
-            </AuthProvider>
+              <ToastContainer />
+            </AppInitializer>
           </Router>
-        </ToastProvider>
+        </StoreProvider>
       </LocalizationProvider>
     </ThemeProvider>
   );

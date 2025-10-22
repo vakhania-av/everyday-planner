@@ -1,38 +1,18 @@
 import { Box, Button, TextField } from "@mui/material";
 import { DatePicker } from '@mui/x-date-pickers';
-import { useState } from "react";
-import { createTask } from "../../api/todos.js";
 import CategorySelect from "./CategorySelect.jsx";
-import { useToast } from "../../context/ToastContext.jsx";
+import { observer } from "mobx-react-lite";
+import { useTaskStore, useUiStore } from "../../hooks/useStores.js";
 
-export default function TaskForm({ setTodos }) {
-  const [title, setTitle] = useState('');
-  const [deadline, setDeadline] = useState(null);
-  const [category, setCategory] = useState('');
-
-  const { addToast } = useToast();
+const TaskForm = observer(() => {
+  const { newTaskTitle, newTaskDeadline, disableAddButton, setNewTaskTitle, setNewTaskDeadline, createNewTask } = useTaskStore();
+  const { addToast } = useUiStore();
 
   const handleSubmit = async (evt) => {
     evt.preventDefault();
 
-    if (!title.trim()) return;
-
     try {
-      const newTodoId = await createTask({
-        title,
-        deadline: deadline ? deadline.toISOString() : null,
-        category
-      });
-
-      setTodos((prev) => [...prev, {
-        id: newTodoId,
-        title,
-        deadline: deadline ? deadline.toISOString() : null,
-        category
-      }]);
-      setTitle('');
-      setDeadline(null);
-      setCategory('');
+      await createNewTask();
       addToast('Task created successfully', 'success');
     } catch (err) {
       console.error(err);
@@ -45,15 +25,15 @@ export default function TaskForm({ setTodos }) {
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <TextField
           label="New task"
-          value={title}
-          onChange={(evt) => setTitle(evt.target.value)}
+          value={newTaskTitle}
+          onChange={(evt) => setNewTaskTitle(evt.target.value)}
           sx={{ minWidth: 200, flex: 1 }}
           size="small"
         />
         <DatePicker
           label="Deadline"
-          value={deadline}
-          onChange={(newValue) => setDeadline(newValue)}
+          value={newTaskDeadline}
+          onChange={(newValue) => setNewTaskDeadline(newValue)}
           slotProps={{
             textField: {
               size: 'small',
@@ -62,16 +42,19 @@ export default function TaskForm({ setTodos }) {
           }}
         />
 
-        <CategorySelect value={category} onChange={setCategory} />
+        <CategorySelect />
         <Button
           type="submit"
           variant="contained"
           color="primary"
           sx={{ height: 40 }}
+          disabled={disableAddButton}
         >
           Add Task
         </Button>
       </Box>
     </Box>
   );
-};
+});
+
+export default TaskForm;

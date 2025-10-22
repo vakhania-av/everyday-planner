@@ -1,17 +1,14 @@
 import { AppBar, Avatar, Button, Menu, MenuItem, Toolbar, Typography } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
-import { useToast } from "../../context/ToastContext";
-import { resetLoggedOut, setLoggedOut } from "../../api/notifications";
+import { observer } from "mobx-react-lite";
+import { useAuthStore, useUiStore } from "../../hooks/useStores";
 
-export default function Header() {
-  const { currentUser, logout } = useAuth();
-  const { addToast } = useToast();
-
-  const navigate = useNavigate();
-
+const Header = observer(() => {
+  const { currentUser, loggingOut, logout } = useAuthStore();
+  const { addToast } = useUiStore();
   const [anchorEl, setAnchorEl] = useState(null);
+  const navigate = useNavigate();
 
   const handleMenuOpen = (evt) => setAnchorEl(evt.currentTarget);
 
@@ -24,7 +21,6 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      setLoggedOut();
       handleMenuClose();
       navigate('/', { replace: true });
       await logout();
@@ -32,23 +28,22 @@ export default function Header() {
     } catch (err) {
       console.error('Logout error: ', err);
       addToast('Failed to log out', 'error');
-    } finally {
-      resetLoggedOut();
     }
   };
 
   const menu = currentUser ? (
     <>
       <Button color="inherit" component={Link} to="/dashboard">Dashboard</Button>
-      <Button color="inherit" onClick={handleMenuOpen} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Button color="inherit" onClick={handleMenuOpen} sx={{ display: 'flex', alignItems: 'center', gap: 1 }} disabled={loggingOut}>
         <Avatar sx={{ width: 32, height: 32 }}>
           {currentUser.name?.charAt(0).toUpperCase()}
         </Avatar>
         {currentUser.name}
+        {loggingOut && '(Logging out...)'}
       </Button>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem onClick={handleProfile}>Profile</MenuItem>
-        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+        <MenuItem onClick={handleLogout} disabled={loggingOut}>{loggingOut ? 'Logging out...' : 'Logout'}</MenuItem>
       </Menu>
     </>
   ) : (
@@ -68,4 +63,6 @@ export default function Header() {
       </Toolbar>
     </AppBar>
   );
-}
+});
+
+export default Header;

@@ -1,11 +1,12 @@
 import { Box, Button, Container, Grid, Paper, Typography } from "@mui/material";
 import Header from "../components/Layout/Header";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import Notifications from "../components/Notifications/Notifications";
+import { observer } from "mobx-react-lite";
+import { useAuthStore } from "../hooks/useStores";
 
-export default function Home() {
-  const { currentUser } = useAuth();
+const Home = observer(() => {
+  const { currentUser } = useAuthStore();
 
   const content = currentUser ? (
     <Grid container spacing={3} sx={{ justifyContent: 'center' }} >
@@ -50,4 +51,6 @@ export default function Home() {
       </Container>
     </>
   );
-}
+});
+
+export default Home;

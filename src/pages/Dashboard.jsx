@@ -1,11 +1,12 @@
 import { Container } from "@mui/material";
 import Header from "../components/Layout/Header";
 import TaskList from "../components/Tasks/TaskList";
-import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/Layout/LoadingSpinner";
+import { observer } from "mobx-react-lite";
+import { useAuthStore } from "../hooks/useStores";
 
-export default function Dashboard() {
-  const { loading } = useAuth();
+const Dashboard = observer(() => {
+  const { loading } = useAuthStore();
 
   if (loading) {
     return (
@@ -24,4 +25,6 @@ export default function Dashboard() {
       </Container>
     </>
   );
-}
+});
+
+export default Dashboard;

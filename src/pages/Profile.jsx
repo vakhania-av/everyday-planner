@@ -1,35 +1,41 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { Avatar, Box, Button, Container, Divider, Paper, TextField, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
+import { observer } from "mobx-react-lite";
+import { useAuthStore, useUiStore } from "../hooks/useStores";
 
-export default function Profile() {
-  const { currentUser, updateProfile, logout } = useAuth();
+const Profile = observer(() => {
+  const { currentUser, updateProfile, logout } = useAuthStore();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+
+  const [initialName, setInitialName] = useState('');
+  const [initialEmail, setInitialEmail] = useState('');
+
+  const { addToast } = useUiStore();
 
   useEffect(() => {
     if (currentUser) {
       setName(currentUser.name || '');
       setEmail(currentUser.email || '');
+      setInitialName(currentUser.name || '');
+      setInitialEmail(currentUser.email || '');
     }
   }, [currentUser]);
+
+  const hasChanges = name !== initialName || email !== initialEmail;
 
   const handleSubmit = async (evt) => {
     evt.preventDefault();
 
     try {
-      setError('');
-      setSuccess('');
       setLoading(true);
       await updateProfile({ name, email });
-      setSuccess('Profile updated successfully!');
+      addToast('Profile updated successfully!', 'success', 3000);
     } catch (err) {
-      setError('Failed to update profile: ' + err.message);
+      addToast('Failed to update profile: ' + err.message, 'error', 3000);
     } finally {
       setLoading(false);
     }
@@ -50,26 +56,14 @@ export default function Profile() {
         <Divider sx={{ my: 3 }} />
 
         <Box component="form" onSubmit={handleSubmit}>
-          {error && (
-            <Typography color="error" align="center" sx={{ mb: 2 }}>
-              {error}
-            </Typography>)
-          }
-          {success && (
-            <Typography color="success.main" align="center" sx={{ mb: 2 }}>
-              {success}
-            </Typography>)
-          }
-
-          <TextField label="Name" fullWidth margin="normal" value={name} onChange={(evt) => setName(evt.target.value)} required />
-          <TextField label="Email" type="email" fullWidth margin="normal" value={email} onChange={(evt) => setEmail(evt.target.value)} required />
-
+          <TextField label="Name" fullWidth margin="normal" value={name} onChange={(evt) => setName(evt.target.value)} required disabled={loading} />
+          <TextField label="Email" type="email" fullWidth margin="normal" value={email} onChange={(evt) => setEmail(evt.target.value)} required disabled={loading} />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
             <Button
               type="submit"
               variant="contained"
               color="primary"
-              disabled={loading}
+              disabled={loading || !hasChanges}
             >
               {loading ? 'Loading...' : 'Update Profile'}
             </Button>
@@ -82,11 +76,19 @@ export default function Profile() {
             >
               Back
             </Button>
-            <Button variant="outlined" color="error" onClick={logout}>Logout</Button>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={logout}
+              disabled={loading}
+            >
+              Logout
+            </Button>
           </Box>
         </Box>
-
       </Paper>
     </Container>
   );
-}
+});
+
+export default Profile;

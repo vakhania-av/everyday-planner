@@ -1,31 +1,41 @@
-import { AccessTime, Delete, Edit, Save } from "@mui/icons-material";
+import { AccessTime, Cancel, Delete, Edit, Save } from "@mui/icons-material";
 import { Checkbox } from "@mui/material";
 import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, ListItem, ListItemText, TextField, Typography } from "@mui/material";
-import { useState } from "react";
-import { useToast } from "../../context/ToastContext.jsx";
-import { deleteTask, updateTask } from "../../api/todos.js";
 import { DatePicker } from "@mui/x-date-pickers";
 
 import dayjs from "dayjs";
 
 import CategorySelect from "./CategorySelect.jsx";
 import { categories } from "../../const.js";
+import { observer } from "mobx-react-lite";
+import { useTaskStore, useUiStore } from "../../hooks/useStores.js";
 
-export default function TaskItem({ todo, setTodos }) {
-  const [editing, setEditing] = useState(false);
-  const [editText, setEditText] = useState(todo.title);
-  const [editDeadline, setEditDeadline] = useState(dayjs(todo.deadline));
-  const [editCategory, setEditCategory] = useState(todo.category);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+const TaskItem = observer(({ todo }) => {
+  const {
+    editingTaskId,
+    editText,
+    editDeadline,
+    editCategory,
+    openDeleteDialog,
+    taskToDelete,
+    setEditDeadline,
+    setEditCategory,
+    changeCurrentTaskStatus,
+    deleteCurrentTask,
+    setOpenDeleteDialog,
+    setEditText,
+    startEditing,
+    cancelEditing,
+    saveEditing
+  } = useTaskStore();
+  
+  const { addToast } = useUiStore();
 
-  const { addToast } = useToast();
+  const isEditing = editingTaskId === todo.id;
 
   const handleToggle = async () => {
     try {
-      const updates = { completed: !todo.completed };
-      const updatedTodo = await updateTask(todo.id, updates);
-
-      setTodos((prev) => prev.map((t) => t.id === todo.id ? updatedTodo : t));
+      await changeCurrentTaskStatus(todo.id);
       addToast('Task status changed successfully', 'success');
     } catch (err) {
       console.error(err);
@@ -33,33 +43,11 @@ export default function TaskItem({ todo, setTodos }) {
     }
   };
 
-  const handleDelete = async () => {
+  const handleStartEdit = () => startEditing(todo);
+
+  const handleSaveEdit = async () => {
     try {
-      await deleteTask(todo.id);
-      setTodos((prev) => prev.filter((t) => t.id !== todo.id));
-      setOpenDeleteDialog(false);
-      addToast('Task deleted successfully', 'success');
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to delete task', 'error');
-    }
-  };
-
-  const handleEdit = () => {
-    setEditing(true);
-    setEditText(todo.title);
-  };
-
-  const handleSave = async () => {
-    try {
-      const updatedTodo = await updateTask(todo.id, {
-        title: editText,
-        deadline: editDeadline ? editDeadline.toISOString() : null,
-        category: editCategory
-      });
-
-      setTodos((prev) => prev.map((t) => t.id === todo.id ? updatedTodo : t));
-      setEditing(false);
+      saveEditing();
       addToast('Task updated successfully', 'success');
     } catch (err) {
       console.error(err);
@@ -67,12 +55,26 @@ export default function TaskItem({ todo, setTodos }) {
     }
   };
 
-  const textItem = editing ? (
+  const handleCancelEdit = () => cancelEditing();
+
+  const handleOpenDelete = () => setOpenDeleteDialog(true, todo.id);
+
+  const handleDelete = async () => {
+    try {
+      await deleteCurrentTask(todo.id);
+      addToast('Task deleted successfully', 'success');
+    } catch (err) {
+      console.error(err);
+      addToast('Failed to delete task', 'error');
+    }
+  };
+
+  const textItem = isEditing ? (
     <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
       <TextField
         value={editText}
         onChange={(evt) => setEditText(evt.target.value)}
-        onKeyDown={(evt) => evt.key === 'Enter' && handleSave()}
+        onKeyDown={(evt) => evt.key === 'Enter' && handleSaveEdit()}
         size="small"
         sx={{ minWidth: 200, flex: 1 }}
       />
@@ -87,7 +89,6 @@ export default function TaskItem({ todo, setTodos }) {
           }
         }}
       />
-
       <CategorySelect value={editCategory} onChange={setEditCategory} />
     </Box>
   ) : (
@@ -122,13 +123,24 @@ export default function TaskItem({ todo, setTodos }) {
     />
   );
 
-  const iconButton = editing ? (
-    <IconButton edge='end' onClick={handleSave}>
-      <Save />
-    </IconButton>) : (
-    <IconButton edge='end' onClick={handleEdit}>
-      <Edit />
-    </IconButton>
+  const iconButton = isEditing ? (
+    <>
+      <IconButton edge='end' onClick={handleSaveEdit}>
+        <Save />
+      </IconButton>
+      <IconButton edge='end' onClick={handleCancelEdit}>
+        <Cancel />
+      </IconButton>
+    </>) : (
+    <>
+      <IconButton edge='end' onClick={handleStartEdit}>
+        <Edit />
+      </IconButton>
+      <IconButton edge='end' onClick={handleOpenDelete}>
+        <Delete />
+      </IconButton>
+    </>
+
   );
 
   return (
@@ -137,17 +149,20 @@ export default function TaskItem({ todo, setTodos }) {
         secondaryAction={
           <>
             {iconButton}
-            <IconButton edge='end' onClick={() => setOpenDeleteDialog(true)}>
-              <Delete />
-            </IconButton>
           </>
         }
       >
-        <Checkbox sx={{ cursor: 'pointer' }} edge='start' checked={todo.completed} onChange={handleToggle} />
+        <Checkbox
+          edge='start'
+          sx={{ cursor: 'pointer' }}
+          checked={todo.completed}
+          onChange={handleToggle}
+          disabled={isEditing}
+        />
         {textItem}
       </ListItem>
 
-      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+      <Dialog open={openDeleteDialog && taskToDelete === todo.id} onClose={() => setOpenDeleteDialog(false)}>
         <DialogTitle>Delete Task</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -161,4 +176,6 @@ export default function TaskItem({ todo, setTodos }) {
       </Dialog>
     </>
   );
-}
+});
+
+export default TaskItem;

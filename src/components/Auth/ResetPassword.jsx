@@ -10,8 +10,8 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [searchParams] = useSearchParams();
 
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const token = searchParams.get('token');
@@ -20,15 +20,11 @@ export default function ResetPassword() {
     evt.preventDefault();
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
-
-      return;
+      return setError('Passwords do not match');
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-
-      return;
+      return setError('Password must be at least 6 characters');
     }
 
     try {
