@@ -164,7 +164,7 @@ class TaskStore {
 
     try {
       this.setError(null);
-
+      
       const taskData = {
         title: this.newTaskTitle,
         deadline: this.newTaskDeadline ? this.newTaskDeadline.format('YYYY-MM-DD HH:mm:ss') : null,
@@ -273,6 +273,37 @@ class TaskStore {
   @computed
   get disableAddButton() {
     return !this.newTaskTitle || !this.newTaskDeadline;
+  }
+
+  @computed
+  get stats() {
+    return {
+      total: this.tasks.length,
+      completed: this.tasks.filter((task) => task.completed).length,
+      pending: this.tasks.filter((task) => !task.completed).length,
+      overdue: this.tasks.filter((task) => !task.completed && task.deadline && dayjs(task.deadline).isBefore(dayjs(), 'day')).length,
+      completionRate: this.tasks.length ? Math.round((this.tasks.filter((task) => task.completed).length / this.tasks.length) * 100) : 0
+    };
+  }
+
+  @computed
+  get chartData() {
+    const data = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = dayjs().subtract(i, 'day');
+      const dayTasks = this.tasks.filter((task) => dayjs(task.created_at).isSame(date, 'day'));
+      const completedTasks = this.tasks.filter((task) => task.completed && dayjs(task.updated_at).isSame(date, 'day'));
+
+      data.push({
+        name: date.format('DD MMM'),
+        created: dayTasks.length,
+        completed: completedTasks.length,
+        date: date.format('YYYY-MM-DD')
+      });
+    }
+
+    return data;
   }
 }
 

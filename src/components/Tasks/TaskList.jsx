@@ -28,7 +28,7 @@ const TaskList = observer(() => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant='h4'>My tasks</Typography>
+        <Typography variant='h4' gutterBottom>My tasks</Typography>
         <TaskSorting />
       </Box>
       <TaskFilter currentFilter={filter} setFilter={setFilter} />
