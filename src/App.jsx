@@ -1,4 +1,4 @@
-import { Box, createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 
 import rootStore, { StoreProvider } from "./stores";
@@ -26,8 +26,10 @@ import 'dayjs/locale/ru.js';
 
 import { ruRU } from "@mui/x-date-pickers/locales";
 import { observer } from "mobx-react-lite";
+import { useThemeStore } from "./hooks/useStores";
 
-const theme = createTheme();
+import lightTheme from "./theme/lightTheme.js";
+import darkTheme from "./theme/darkTheme.js";
 
 const AppContent = observer(() => {
   const location = useLocation();
@@ -84,7 +86,10 @@ const AppContent = observer(() => {
   );
 });
 
-function App() {
+const ThemedApp = observer(() => {
+  const { currentTheme } = useThemeStore();
+  const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -93,16 +98,22 @@ function App() {
         adapterLocale="ru"
         localeText={ruRU.components.MuiLocalizationProvider.defaultProps.localeText}
       >
-        <StoreProvider value={rootStore}>
-          <Router>
-            <AppInitializer>
-              <AppContent />
-              <ToastContainer />
-            </AppInitializer>
-          </Router>
-        </StoreProvider>
+        <Router>
+          <AppInitializer>
+            <AppContent />
+            <ToastContainer />
+          </AppInitializer>
+        </Router>
       </LocalizationProvider>
     </ThemeProvider>
+  );
+});
+
+function App() {
+  return (
+    <StoreProvider value={rootStore}>
+      <ThemedApp />
+    </StoreProvider>
   );
 }
 

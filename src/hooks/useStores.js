@@ -27,3 +27,9 @@ export const useTaskStore = () => {
 
   return taskStore;
 };
+
+export const useThemeStore = () => {
+  const { themeStore } = useStore();
+
+  return themeStore;
+};

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useAuthStore, useUiStore } from "../../hooks/useStores";
+import ThemeToggle from "./ThemeToggle";
 
 const Header = observer(() => {
   const { currentUser, loggingOut, logout } = useAuthStore();
@@ -54,11 +55,33 @@ const Header = observer(() => {
   );
 
   return (
-    <AppBar position="static">
+    <AppBar
+      position="static"
+      sx={{
+        transition: 'all 0.3s ease',
+        background: (theme) => theme.palette.mode === 'dark' ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)' : 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)'
+      }}
+    >
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          <Button color="inherit" component={Link} to="/">EveryDay Planner</Button>
+          <Button
+            color="inherit"
+            component={Link}
+            to="/"
+            sx={{
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            EveryDay Planner
+          </Button>
         </Typography>
+        <ThemeToggle />
         {menu}
       </Toolbar>
     </AppBar>

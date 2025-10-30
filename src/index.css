@@ -1,0 +1,36 @@
+:root {
+  --transition-duration: 0.3s;
+  --border-radius: 8px;
+}
+
+[data-theme="light"] {
+  --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --header-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+  --bg-gradient: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --header-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+}
+
+body {
+  background: var(--bg-gradient);
+  min-height: 100vh;
+}
+
+.MuiCard-root {
+  box-shadow: var(--card-shadow) !important;
+}
+
+.MuiAppBar-root {
+  box-shadow: var(--header-shadow) !important;
+  backdrop-filter: blur(10px);
+}
+
+* {
+  transition: background-color var(--transition-duration) ease,
+              color var(--transition-duration) ease,
+              border-color var(--transition-duration) ease;
+}

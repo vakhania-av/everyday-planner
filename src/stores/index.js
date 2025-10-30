@@ -3,6 +3,7 @@ import AuthStore from "./AuthStore";
 import UiStore from "./UiStore";
 import NotificationStore from "./NotificationStore";
 import TaskStore from "./TaskStore";
+import ThemeStore from "./ThemeStore";
 
 class RootStore {
   constructor() {
@@ -10,6 +11,7 @@ class RootStore {
     this.uiStore = new UiStore();
     this.notificationStore = new NotificationStore(this.authStore);
     this.taskStore = new TaskStore();
+    this.themeStore = new ThemeStore();
   }
 }
 
