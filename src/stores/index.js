@@ -4,14 +4,18 @@ import UiStore from "./UiStore";
 import NotificationStore from "./NotificationStore";
 import TaskStore from "./TaskStore";
 import ThemeStore from "./ThemeStore";
+import ReminderStore from "./ReminderStore";
+import GoalStore from "./GoalStore";
 
 class RootStore {
   constructor() {
     this.authStore = new AuthStore();
     this.uiStore = new UiStore();
     this.notificationStore = new NotificationStore(this.authStore);
-    this.taskStore = new TaskStore();
+    this.taskStore = new TaskStore(this);
     this.themeStore = new ThemeStore();
+    this.reminderStore = new ReminderStore();
+    this.goalStore = new GoalStore();
   }
 }
 

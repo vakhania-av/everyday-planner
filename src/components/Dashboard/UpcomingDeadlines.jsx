@@ -14,13 +14,17 @@ const UpcomingDeadlines = observer(() => {
     .slice(0, 5);
 
   const getDeadlineStatus = (deadline) => {
-    const daysUntil = dayjs(deadline).diff(dayjs(), 'day');
+    const now = dayjs();
+    const deadlineTime = dayjs(deadline);
+    const hoursUntil = deadlineTime.diff(now, 'hour');
+    const minutesUntil = deadlineTime.diff(now, 'minute');
 
     switch (true) {
-      case daysUntil < 0: return { color: 'error', label: 'Overdue', icon: <Warning /> };
-      case daysUntil === 0: return { color: 'warning', label: 'Today', icon: <Warning /> };
-      case daysUntil <= 2: return { color: 'warning', label: `In ${daysUntil} days`, icon: <Schedule /> };
-      default: return { color: 'info', label: `In ${daysUntil} days`, icon: <Schedule /> };
+      case minutesUntil < 0: return { color: 'error', label: 'Overdue', icon: <Warning /> };
+      case minutesUntil < 60: return { color: 'error', label: `In ${minutesUntil} min.`, icon: <Warning /> };
+      case hoursUntil < 24: return { color: 'warning', label: `In ${hoursUntil} hours`, icon: <Warning /> };
+      case hoursUntil <= 48: return { color: 'warning', label: `In ${Math.floor(hoursUntil / 24)} hours`, icon: <Warning /> };
+      default: return { color: 'info', label: `In ${Math.floor(hoursUntil / 24)} days`, icon: <Schedule /> };
     }
   };
 

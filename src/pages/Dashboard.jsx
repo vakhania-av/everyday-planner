@@ -8,6 +8,7 @@ import StatsCards from "../components/Dashboard/StatsCards";
 import TasksChart from "../components/Dashboard/TasksChart";
 import CategoriesChart from "../components/Dashboard/CategoriesChart";
 import UpcomingDeadlines from "../components/Dashboard/UpcomingDeadlines";
+import GoalsProgress from "../components/Dashboard/GoalsProgress";
 
 const Dashboard = observer(() => {
   const { loading } = useAuthStore();
@@ -31,6 +32,7 @@ const Dashboard = observer(() => {
         <Grid container spacing={3} sx={{ mt: 3 }}>
           {/* Графики и аналитика */}
           <Grid size={{ xs: 12, md: 6 }}>
+            <GoalsProgress />
             <UpcomingDeadlines />
             <TasksChart />
             <CategoriesChart />

@@ -23,7 +23,9 @@ class TaskStore {
   @observable newTaskDeadline = null;
   @observable newTaskCategory = 'other';
 
-  constructor() {
+  constructor(rootStore) {
+    this.rootStore = rootStore;
+
     makeObservable(this);
   }
 
@@ -113,7 +115,7 @@ class TaskStore {
     this.setEditingTaskId(task.id);
     this.setEditText(task.title);
     this.setEditDeadline(task.deadline ? dayjs(task.deadline) : null);
-    this.setEditCategory(task.category || '');
+    this.setEditCategory(task.category);
   };
 
   @action
@@ -123,7 +125,7 @@ class TaskStore {
 
   @action
   saveEditing = async () => {
-    if (!this.editingTaskId) return;
+    if (!this.editingTaskId || !this.editText.trim()) return false;
 
     try {
       const updates = {
@@ -137,7 +139,10 @@ class TaskStore {
 
       return true;
     } catch (err) {
-      throw err;
+      this.setError(`Error saving task: ${err}`);
+      console.error(this.error);
+
+      throw this.error;
     }
   };
 
@@ -160,21 +165,34 @@ class TaskStore {
 
   @action
   createNewTask = async () => {
-    if (!this.newTaskTitle.trim()) return;
+    if (!this.newTaskTitle.trim()) {
+      this.setError('Task title is required');
+
+      return null;
+    }
 
     try {
       this.setError(null);
-      
+
       const taskData = {
-        title: this.newTaskTitle,
+        title: this.newTaskTitle.trim(),
         deadline: this.newTaskDeadline ? this.newTaskDeadline.format('YYYY-MM-DD HH:mm:ss') : null,
         category: this.newTaskCategory
       };
 
       const newTask = await createTask(taskData);
 
-      this.setTasks([{id: newTask, ...taskData}, ...this.tasks]);
+      this.setTasks([{
+        id: newTask,
+        completed: false,
+        created_at: new Date().toISOString(),
+        ...taskData
+      },
+      ...this.tasks]);
+
       this.resetNewTaskForm();
+      // Обновляем цели
+      this.rootStore.goalStore.updateFromTasks(this.tasks);
 
       return newTask;
     } catch (err) {
@@ -192,7 +210,12 @@ class TaskStore {
       const index = this.tasks.findIndex((t) => t.id === id);
 
       if (index !== -1) {
-        this.tasks[index] = updatedTask;
+        this.tasks[index] = {...this.tasks[index], ...updatedTask};
+      }
+
+      //Обновляем цели при изменении статуса
+      if (updates.completed) {
+        this.rootStore.goalStore.updateFromTasks(this.tasks);
       }
 
       return updatedTask;
@@ -226,6 +249,8 @@ class TaskStore {
       await deleteTask(id);
       this.setTasks(this.tasks.filter((t) => t.id !== id));
       this.setOpenDeleteDialog(false);
+      // Обновляем цели
+      this.rootStore.goalStore.updateFromTasks(this.tasks);
     } catch (err) {
       this.setError('Failed to delete task');
       throw this.error;
@@ -272,7 +297,7 @@ class TaskStore {
 
   @computed
   get disableAddButton() {
-    return !this.newTaskTitle || !this.newTaskDeadline;
+    return !this.newTaskTitle.trim() || !this.newTaskDeadline;
   }
 
   @computed
@@ -281,7 +306,7 @@ class TaskStore {
       total: this.tasks.length,
       completed: this.tasks.filter((task) => task.completed).length,
       pending: this.tasks.filter((task) => !task.completed).length,
-      overdue: this.tasks.filter((task) => !task.completed && task.deadline && dayjs(task.deadline).isBefore(dayjs(), 'day')).length,
+      overdue: this.tasks.filter((task) => !task.completed && task.deadline && dayjs(task.deadline).isBefore(dayjs(), 'minute')).length,
       completionRate: this.tasks.length ? Math.round((this.tasks.filter((task) => task.completed).length / this.tasks.length) * 100) : 0
     };
   }

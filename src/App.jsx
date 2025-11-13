@@ -15,6 +15,7 @@ import Register from "./components/Auth/Register";
 import PublicRoute from "./components/Layout/PublicRoute";
 import PrivateRoute from "./components/Layout/PrivateRoute";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import ForgotPassword from "./components/Auth/ForgotPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 import Footer from "./components/Layout/Footer";
@@ -75,6 +76,14 @@ const AppContent = observer(() => {
               <PrivateRoute>
                 <Profile />
               </PrivateRoute>}
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Settings />
+              </PrivateRoute>
+            }
           />
 
           {/* Главная страница - доступна всем */}

@@ -205,7 +205,7 @@ class ReminderStore {
 
   @computed
   get upcomingReminders() {
-    this.reminders
+    return this.reminders
     .map((r) => ({
       ...r,
       notifyAt: this.getNotificationTime(r)

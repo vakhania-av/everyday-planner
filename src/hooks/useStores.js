@@ -33,3 +33,15 @@ export const useThemeStore = () => {
 
   return themeStore;
 };
+
+export const useReminderStore = () => {
+  const { reminderStore } = useStore();
+
+  return reminderStore;
+};
+
+export const useGoalStore = () => {
+  const { goalStore } = useStore();
+
+  return goalStore;
+};

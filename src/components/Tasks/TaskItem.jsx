@@ -1,7 +1,7 @@
 import { AccessTime, Cancel, Delete, Edit, Save } from "@mui/icons-material";
 import { Checkbox } from "@mui/material";
 import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, ListItem, ListItemText, TextField, Typography } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers";
+import { DateTimePicker } from "@mui/x-date-pickers";
 
 import dayjs from "dayjs";
 
@@ -28,7 +28,7 @@ const TaskItem = observer(({ todo }) => {
     cancelEditing,
     saveEditing
   } = useTaskStore();
-  
+
   const { addToast } = useUiStore();
 
   const isEditing = editingTaskId === todo.id;
@@ -70,26 +70,41 @@ const TaskItem = observer(({ todo }) => {
   };
 
   const textItem = isEditing ? (
-    <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 1.5,
+      width: '100%',
+      minWidth: 0,
+      '& > *': {
+        minWidth: 140,
+        flex: '1 1 140px'
+      }
+    }}
+    >
       <TextField
         value={editText}
         onChange={(evt) => setEditText(evt.target.value)}
         onKeyDown={(evt) => evt.key === 'Enter' && handleSaveEdit()}
         size="small"
-        sx={{ minWidth: 200, flex: 1 }}
+        sx={{ minWidth: 140 }}
       />
-      <DatePicker
+      <DateTimePicker
         label="Deadline"
         value={editDeadline}
         onChange={(newValue) => setEditDeadline(newValue)}
         slotProps={{
           textField: {
             size: 'small',
-            sx: { minWidth: 200 }
+            sx: { minWidth: { xs: 100, sm: 200 }, flex: 1 }
           }
         }}
       />
-      <CategorySelect value={editCategory} onChange={setEditCategory} />
+      <CategorySelect
+        value={editCategory}
+        onChange={setEditCategory}
+      />
     </Box>
   ) : (
     <ListItemText
@@ -108,7 +123,7 @@ const TaskItem = observer(({ todo }) => {
       secondary={todo.deadline && (
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
           <AccessTime fontSize="small" sx={{ mr: 0.5 }} />
-          {dayjs(todo.deadline).format('DD MMM YYYY')}
+          {dayjs(todo.deadline).format('DD MMM YYYY HH:mm')}
           {dayjs(todo.deadline).isBefore(dayjs()) && !todo.completed && (
             <Typography
               component="span"
@@ -146,6 +161,13 @@ const TaskItem = observer(({ todo }) => {
   return (
     <>
       <ListItem
+        sx={{
+          minHeight: isEditing ? { xs: 140, sm: 'auto' } : 'auto',
+          position: 'relative',
+          overflow: 'visible',
+          border: '2px solid red',
+          mb: isEditing ? 1.5 : 0
+        }}
         secondaryAction={
           <>
             {iconButton}
@@ -154,12 +176,14 @@ const TaskItem = observer(({ todo }) => {
       >
         <Checkbox
           edge='start'
-          sx={{ cursor: 'pointer' }}
+          sx={{ cursor: 'pointer', mt: isEditing ? 2 : 0.5 }}
           checked={todo.completed}
           onChange={handleToggle}
           disabled={isEditing}
         />
-        {textItem}
+        <Box sx={{ flex: 1, minWidth: 0, pr: { xs: 6, sm: 8 } }}>
+          {textItem}
+        </Box>
       </ListItem>
 
       <Dialog open={openDeleteDialog && taskToDelete === todo.id} onClose={() => setOpenDeleteDialog(false)}>

@@ -20,6 +20,11 @@ const Header = observer(() => {
     handleMenuClose();
   };
 
+  const handleSettings = () => {
+    navigate('/settings');
+    handleMenuClose();
+  };
+
   const handleLogout = async () => {
     try {
       handleMenuClose();
@@ -44,6 +49,7 @@ const Header = observer(() => {
       </Button>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem onClick={handleProfile}>Profile</MenuItem>
+        <MenuItem onClick={handleSettings}>Settings</MenuItem>
         <MenuItem onClick={handleLogout} disabled={loggingOut}>{loggingOut ? 'Logging out...' : 'Logout'}</MenuItem>
       </Menu>
     </>

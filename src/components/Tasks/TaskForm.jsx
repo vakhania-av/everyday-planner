@@ -1,11 +1,11 @@
 import { Box, Button, TextField } from "@mui/material";
-import { DatePicker } from '@mui/x-date-pickers';
+import { DateTimePicker } from '@mui/x-date-pickers';
 import CategorySelect from "./CategorySelect.jsx";
 import { observer } from "mobx-react-lite";
 import { useTaskStore, useUiStore } from "../../hooks/useStores.js";
 
 const TaskForm = observer(() => {
-  const { newTaskTitle, newTaskDeadline, disableAddButton, setNewTaskTitle, setNewTaskDeadline, createNewTask } = useTaskStore();
+  const { newTaskTitle, newTaskDeadline, newTaskCategory, disableAddButton, setNewTaskTitle, setNewTaskDeadline, createNewTask, setNewTaskCategory } = useTaskStore();
   const { addToast } = useUiStore();
 
   const handleSubmit = async (evt) => {
@@ -30,7 +30,7 @@ const TaskForm = observer(() => {
           sx={{ minWidth: 200, flex: 1 }}
           size="small"
         />
-        <DatePicker
+        <DateTimePicker
           label="Deadline"
           value={newTaskDeadline}
           onChange={(newValue) => setNewTaskDeadline(newValue)}
@@ -42,7 +42,10 @@ const TaskForm = observer(() => {
           }}
         />
 
-        <CategorySelect />
+        <CategorySelect
+          value={newTaskCategory}
+          onChange={setNewTaskCategory}
+        />
         <Button
           type="submit"
           variant="contained"
