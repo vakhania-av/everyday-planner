@@ -9,6 +9,7 @@ import CategorySelect from "./CategorySelect.jsx";
 import { categories } from "../../const.js";
 import { observer } from "mobx-react-lite";
 import { useTaskStore, useUiStore } from "../../hooks/useStores.js";
+import { useCallback } from "react";
 
 const TaskItem = observer(({ todo }) => {
   const {
@@ -32,6 +33,7 @@ const TaskItem = observer(({ todo }) => {
   const { addToast } = useUiStore();
 
   const isEditing = editingTaskId === todo.id;
+  const isOverdue = !todo.completed && todo.deadline && dayjs(todo.deadline).isBefore(dayjs(), 'minute');
 
   const handleToggle = async () => {
     try {
@@ -57,7 +59,13 @@ const TaskItem = observer(({ todo }) => {
 
   const handleCancelEdit = () => cancelEditing();
 
-  const handleOpenDelete = () => setOpenDeleteDialog(true, todo.id);
+  const handleOpenDelete = useCallback(() => {
+    setOpenDeleteDialog(true, todo.id);
+  }, [setOpenDeleteDialog, todo.id]);
+
+  const handleCloseDelete = useCallback(() => {
+    setOpenDeleteDialog(false);
+  }, [setOpenDeleteDialog]);
 
   const handleDelete = async () => {
     try {
@@ -69,35 +77,39 @@ const TaskItem = observer(({ todo }) => {
     }
   };
 
+  const handleKeyDown = useCallback((evt) => {
+    if (evt.key === 'Enter') {
+      handleSaveEdit();
+    } else if (evt.key === 'Escape') {
+      handleCancelEdit();
+    }
+  }, [handleSaveEdit, handleCancelEdit]);
+
   const textItem = isEditing ? (
     <Box sx={{
       display: 'flex',
-      flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 1.5,
+      gap: 2,
       width: '100%',
-      minWidth: 0,
-      '& > *': {
-        minWidth: 140,
-        flex: '1 1 140px'
-      }
+      alignItems: 'flex-start'
     }}
     >
       <TextField
         value={editText}
         onChange={(evt) => setEditText(evt.target.value)}
-        onKeyDown={(evt) => evt.key === 'Enter' && handleSaveEdit()}
+        onKeyDown={handleKeyDown}
         size="small"
-        sx={{ minWidth: 140 }}
+        sx={{ minWidth: 200, flex: 1 }}
+        autoFocus
       />
       <DateTimePicker
         label="Deadline"
         value={editDeadline}
-        onChange={(newValue) => setEditDeadline(newValue)}
+        onChange={setEditDeadline}
         slotProps={{
           textField: {
             size: 'small',
-            sx: { minWidth: { xs: 100, sm: 200 }, flex: 1 }
+            sx: { minWidth: 200 }
           }
         }}
       />
@@ -109,38 +121,48 @@ const TaskItem = observer(({ todo }) => {
   ) : (
     <ListItemText
       primary={
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
           {todo.category && (
             <Chip
               label={categories.find((c) => c.id === todo.category)?.name || todo.category}
               color={categories.find((c) => c.id === todo.category)?.color || 'default'}
               size="small"
-              sx={{ mr: 1 }}
+              sx={{ mr: 1, mb: 0.5 }}
             />
           )}
-          {todo.title}
+          <Typography
+            component="span"
+            sx={{
+              textDecoration: todo.completed ? 'line-through' : 'none',
+              opacity: todo.completed ? 0.7 : 1
+            }}
+          >
+            {todo.title}
+          </Typography>
         </Box>}
       secondary={todo.deadline && (
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-          <AccessTime fontSize="small" sx={{ mr: 0.5 }} />
-          {dayjs(todo.deadline).format('DD MMM YYYY HH:mm')}
-          {dayjs(todo.deadline).isBefore(dayjs()) && !todo.completed && (
-            <Typography
-              component="span"
-              sx={{ ml: 1, color: 'error.main', fontSize: '0.75rem' }}
-            >
-              Overdue
-            </Typography>
-          )}
+          <AccessTime fontSize="small" sx={{ mr: 0.5, opacity: 0.6 }} />
+          <Typography
+            variant="body2"
+            component="span"
+            sx={{
+              color: isOverdue ? 'error.main' : 'text.secondary',
+              fontWeight: isOverdue ? 'bold' : 'normal'
+            }}
+          >
+            {dayjs(todo.deadline).format('DD MMM YYYY HH:mm')}
+            {isOverdue && " • Overdue"}
+          </Typography>
         </Box>
       )}
       style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}
     />
   );
 
-  const iconButton = isEditing ? (
+  const actionButtons = isEditing ? (
     <>
-      <IconButton edge='end' onClick={handleSaveEdit}>
+      <IconButton edge='end' onClick={handleSaveEdit} color="primary">
         <Save />
       </IconButton>
       <IconButton edge='end' onClick={handleCancelEdit}>
@@ -148,10 +170,10 @@ const TaskItem = observer(({ todo }) => {
       </IconButton>
     </>) : (
     <>
-      <IconButton edge='end' onClick={handleStartEdit}>
+      <IconButton edge='end' onClick={handleStartEdit} disabled={todo.completed}>
         <Edit />
       </IconButton>
-      <IconButton edge='end' onClick={handleOpenDelete}>
+      <IconButton edge='end' onClick={handleOpenDelete} color="error">
         <Delete />
       </IconButton>
     </>
@@ -162,15 +184,15 @@ const TaskItem = observer(({ todo }) => {
     <>
       <ListItem
         sx={{
-          minHeight: isEditing ? { xs: 140, sm: 'auto' } : 'auto',
-          position: 'relative',
-          overflow: 'visible',
-          border: '2px solid red',
-          mb: isEditing ? 1.5 : 0
+          border: isOverdue ? '1px solid' : 'none',
+          borderColor: 'error.main',
+          borderRadius: 1,
+          mb: 1,
+          backgroundColor: isOverdue ? '#FEE9E6' : 'transparent'
         }}
         secondaryAction={
           <>
-            {iconButton}
+            {actionButtons}
           </>
         }
       >
@@ -180,22 +202,32 @@ const TaskItem = observer(({ todo }) => {
           checked={todo.completed}
           onChange={handleToggle}
           disabled={isEditing}
+          color="success"
         />
         <Box sx={{ flex: 1, minWidth: 0, pr: { xs: 6, sm: 8 } }}>
           {textItem}
         </Box>
       </ListItem>
 
-      <Dialog open={openDeleteDialog && taskToDelete === todo.id} onClose={() => setOpenDeleteDialog(false)}>
+      <Dialog
+        open={openDeleteDialog && taskToDelete === todo.id}
+        onClose={handleCloseDelete}
+      >
         <DialogTitle>Delete Task</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete "{todo.title}"?
+            Are you sure you want to delete <b>"{todo.title}"</b>? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-          <Button color="error" onClick={handleDelete}>Delete</Button>
+          <Button onClick={handleCloseDelete}>Cancel</Button>
+          <Button
+            startIcon={<Delete />}
+            color="error"
+            onClick={handleDelete}
+          >
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
     </>
