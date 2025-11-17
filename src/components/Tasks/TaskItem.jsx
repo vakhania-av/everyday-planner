@@ -35,19 +35,19 @@ const TaskItem = observer(({ todo }) => {
   const isEditing = editingTaskId === todo.id;
   const isOverdue = !todo.completed && todo.deadline && dayjs(todo.deadline).isBefore(dayjs(), 'minute');
 
-  const handleToggle = async () => {
+  const handleToggle = useCallback(async () => {
     try {
       await changeCurrentTaskStatus(todo.id);
-      addToast('Task status changed successfully', 'success');
+      addToast(`Task marked as ${!todo.completed ? 'completed' : 'active'}`, 'success');
     } catch (err) {
       console.error(err);
       addToast('Failed to change task status', 'error');
     }
-  };
+  }, [todo.id, todo.completed, changeCurrentTaskStatus, addToast]);
 
-  const handleStartEdit = () => startEditing(todo);
+  const handleStartEdit = useCallback(() => startEditing(todo), [startEditing, todo]);
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = useCallback(async () => {
     try {
       saveEditing();
       addToast('Task updated successfully', 'success');
@@ -55,19 +55,15 @@ const TaskItem = observer(({ todo }) => {
       console.error(err);
       addToast('Failed to update task', 'error');
     }
-  };
+  }, [saveEditing, addToast]);
 
-  const handleCancelEdit = () => cancelEditing();
+  const handleCancelEdit = useCallback(() => cancelEditing(), [cancelEditing]);
 
-  const handleOpenDelete = useCallback(() => {
-    setOpenDeleteDialog(true, todo.id);
-  }, [setOpenDeleteDialog, todo.id]);
+  const handleOpenDelete = useCallback(() => setOpenDeleteDialog(true, todo.id), [setOpenDeleteDialog, todo.id]);
 
-  const handleCloseDelete = useCallback(() => {
-    setOpenDeleteDialog(false);
-  }, [setOpenDeleteDialog]);
+  const handleCloseDelete = useCallback(() => setOpenDeleteDialog(false), [setOpenDeleteDialog]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     try {
       await deleteCurrentTask(todo.id);
       addToast('Task deleted successfully', 'success');
@@ -75,7 +71,7 @@ const TaskItem = observer(({ todo }) => {
       console.error(err);
       addToast('Failed to delete task', 'error');
     }
-  };
+  }, [deleteCurrentTask, todo.id, addToast]);
 
   const handleKeyDown = useCallback((evt) => {
     if (evt.key === 'Enter') {
