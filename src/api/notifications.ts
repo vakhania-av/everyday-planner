@@ -1,6 +1,6 @@
-import type { INotification } from "@/types/notification.js";
-import { BASE_API } from "../const.js";
-import csrfService from "../services/csrfService.js";
+import type { INotification } from "@/types/notification";
+import { BASE_API } from "../const";
+import csrfService from "../services/csrfService";
 
 // Типы ответов для API
 interface ApiResponse<T = unknown> {

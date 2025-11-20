@@ -1,6 +1,6 @@
-import type { ITask } from "@/types/task.js";
-import { BASE_API } from "../const.js";
-import csrfService from "../services/csrfService.js";
+import type { ITask } from "@/types/task";
+import { BASE_API } from "../const";
+import csrfService from "../services/csrfService";
 
 interface GetTasksResponse {
   tasks: ITask[];

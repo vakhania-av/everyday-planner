@@ -1,6 +1,6 @@
-import type { IUser } from "@/types/user.js";
-import { BASE_API, METHODS } from "../const.js";
-import csrfService from '../services/csrfService.js';
+import type { IUser } from "@/types/user";
+import { BASE_API, METHODS } from "../const";
+import csrfService from '../services/csrfService';
 
 // Типы ответов для API
 interface ApiResponse<T = unknown> {

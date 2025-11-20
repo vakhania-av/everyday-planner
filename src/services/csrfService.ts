@@ -1,4 +1,4 @@
-import { CSRF_TOKEN_API } from "../const.js";
+import { CSRF_TOKEN_API } from "../const";
 
 class CsrfService {
   static key: string = "csrf_token";
