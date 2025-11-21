@@ -1,14 +1,16 @@
 import { observer } from "mobx-react-lite";
-import { useTaskStore } from "../../hooks/useStores";
 import { Box, Card, CardContent, Typography } from "@mui/material";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { COLORS } from "../../const";
+
+import { useTaskStore } from "../../hooks/useStores";
+import type { ITask } from "@/types";
 
 // Категории задач
 const CategoriesChart = observer(() => {
   const { tasks } = useTaskStore();
 
-  const categoryData = Object.entries(tasks.reduce((acc, task) => {
+  const categoryData = Object.entries(tasks.reduce<Record<string, number>>((acc, task: ITask) => {
     const category = task.category || 'other';
 
     acc[category] = (acc[category] || 0) + 1;
@@ -30,7 +32,10 @@ const CategoriesChart = observer(() => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                label={({ name, percent }: {name: string, percent: unknown}) => {
+                  const pct = typeof percent === 'number' ? percent : 0;
+                  return `${name} (${(pct * 100).toFixed(0)}%)`
+                }}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
